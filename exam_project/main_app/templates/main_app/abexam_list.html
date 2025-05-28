@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Используем переменную page_title из контекста для заголовка страницы -->
+    <title>{{ page_title }}</title>
+    <style>
+        /* Простые стили для лучшей читаемости */
+        body { font-family: sans-serif; margin: 20px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; padding: 15px; border: 1px solid #ccc; }
+        h1, h2 { color: #333; }
+        .exam-item { border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
+        .exam-item:last-child { border-bottom: none; }
+        .exam-item h3 { margin-top: 0; }
+        .exam-item img { max-width: 250px; height: auto; display: block; margin-top: 10px; border: 1px solid #ddd; }
+        .label { font-weight: bold; }
+        .user-list { list-style-type: none; padding-left: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Отображение ФИО и номера группы из контекста -->
+        <h1>{{ fio }}</h1>
+        <p><span class="label">Группа:</span> {{ group_number }}</p>
+        <hr>
+
+        <h2>Опубликованные экзамены</h2>
+
+        <!-- Проверяем, есть ли экзамены для отображения -->
+        {% if exams %}
+            <!-- Цикл по списку экзаменов (переменная 'exams' из контекста) -->
+            {% for exam in exams %}
+                <div class="exam-item">
+                    <h3><span class="label">Название экзамена:</span> {{ exam.exam_name }}</h3>
+
+                    <p><span class="label">Дата создания записи:</span>
+                       <!-- Фильтр 'date' форматирует дату. "d.m.Y H:i:s" - день.месяц.год часы:минуты:секунды -->
+                       {{ exam.created_at|date:"d.m.Y H:i" }}
+                    </p>
+
+                    <p><span class="label">Дата проведения экзамена:</span>
+                       {{ exam.exam_date|date:"d.m.Y" }}
+                    </p>
+
+                    <!-- Проверяем, есть ли изображение для этого экзамена -->
+                    {% if exam.exam_image %}
+                        <p><span class="label">Задание (изображение):</span></p>
+                        <!-- exam.exam_image.url - генерирует URL для доступа к файлу изображения -->
+                        <img src="{{ exam.exam_image.url }}" alt="Задание для {{ exam.exam_name }}">
+                    {% else %}
+                        <p><span class="label">Задание (изображение):</span> Изображение не загружено.</p>
+                    {% endif %}
+
+                    <p><span class="label">Экзаменуемые:</span></p>
+                    <!-- Проверяем, есть ли связанные пользователи -->
+                    {% if exam.examinees.all %}
+                        <ul class="user-list">
+                            <!-- Цикл по всем пользователям, связанным с этим экзаменом -->
+                            {% for user in exam.examinees.all %}
+                                <li>{{ user.username }} ({{ user.first_name }} {{ user.last_name }}, {{ user.email }})</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <span>Пользователи не назначены.</span>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <!-- Сообщение, если опубликованных экзаменов нет -->
+            <p>Нет опубликованных экзаменов.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
