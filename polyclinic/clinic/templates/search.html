@@ -1,0 +1,13 @@
+<form method="get" action="{% url 'search' %}" class="mb-3">
+    <input type="text" name="q" class="form-control" placeholder="Поиск по диагнозу...">
+    <button class="btn btn-primary mt-2" type="submit">Найти</button>
+</form>
+
+{% if results %}
+    <h3>Результаты:</h3>
+    <ul>
+        {% for r in results %}
+            <li>{{ r.patient.last_name }} – {{ r.diagnosis }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
