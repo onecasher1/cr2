@@ -1,0 +1,66 @@
+{% extends "clinic_app/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-user-md text-success"></i> {{ page_title }}</h2>
+
+    <form method="get" class="row g-3 align-items-center my-3">
+        <div class="col-auto">
+            <label for="specializationFilter" class="col-form-label">Фильтр по специализации:</label>
+        </div>
+        <div class="col-auto">
+            <select name="specialization" id="specializationFilter" class="form-select">
+                <option value="">Все специализации</option>
+                {% for spec in specializations %}
+                    <option value="{{ spec.id }}" {% if spec.id == selected_spec_id %}selected{% endif %}>
+                        {{ spec.name }} ({{ spec.num_doctors }})
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Применить</button>
+            {% if selected_spec_id %}
+            <a href="{% url 'doctor_list_all' %}" class="btn btn-outline-secondary ms-2"><i class="fas fa-times"></i> Сбросить</a>
+            {% endif %}
+        </div>
+    </form>
+
+    {% if doctors %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for doctor in doctors %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                {% if doctor.photo %}
+                <img src="{{ doctor.photo.url }}" class="card-img-top" alt="{{ doctor.full_name }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <img src="{% static 'clinic_app/images/default_doctor.png' %}" class="card-img-top" alt="Фото отсутствует" style="height: 200px; object-fit: cover; opacity: 0.7;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title"><a href="{{ doctor.get_absolute_url }}">{{ doctor.full_name }}</a></h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ doctor.specialization.name }}</h6>
+                    <p class="card-text">
+                        <small>
+                            Стаж: {{ doctor.experience_years }} лет<br>
+                            Кабинет: {{ doctor.room_number|default:"не указан" }}
+                        </small>
+                    </p>
+                </div>
+                <div class="card-footer bg-light">
+                     <a href="{{ doctor.get_absolute_url }}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                     <button class="btn btn-sm btn-outline-success float-end disabled" title="Функционал в разработке"><i class="fas fa-calendar-plus"></i> Записаться</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info mt-3" role="alert">
+      Врачи по выбранным критериям не найдены.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

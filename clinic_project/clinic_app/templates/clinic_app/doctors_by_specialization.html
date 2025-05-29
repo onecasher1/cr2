@@ -1,0 +1,49 @@
+{% extends "clinic_app/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-tags text-warning"></i> {{ page_title }}</h2>
+    <hr>
+
+    {% if doctors %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for doctor in doctors %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                {% if doctor.photo %}
+                <img src="{{ doctor.photo.url }}" class="card-img-top" alt="{{ doctor.full_name }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <img src="{% static 'clinic_app/images/default_doctor.png' %}" class="card-img-top" alt="Фото отсутствует" style="height: 200px; object-fit: cover; opacity: 0.7;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title"><a href="{{ doctor.get_absolute_url }}">{{ doctor.full_name }}</a></h5>
+                    <p class="card-text">
+                        <small>
+                            Стаж: {{ doctor.experience_years }} лет<br>
+                            Кабинет: {{ doctor.room_number|default:"не указан" }}
+                        </small>
+                    </p>
+                </div>
+                <div class="card-footer bg-light">
+                     <a href="{{ doctor.get_absolute_url }}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                     <button class="btn btn-sm btn-outline-success float-end disabled" title="Функционал 'Записаться' в разработке"><i class="fas fa-calendar-plus"></i> Записаться</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+      По специализации "<strong>{{ specialization.name }}</strong>" врачи не найдены.
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'specialization_list_all' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Ко всем специализациям</a>
+        <a href="{% url 'doctor_list_all' %}" class="btn btn-outline-secondary ms-2"><i class="fas fa-users"></i> Ко всем врачам</a>
+    </div>
+</div>
+{% endblock %}

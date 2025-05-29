@@ -1,0 +1,71 @@
+{% extends "clinic_app/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+             <h3><i class="fas fa-calendar-day text-primary"></i> {{ page_title }}</h3>
+            <div>
+                <a href="{% url 'appointment_update' appointment.pk %}" class="btn btn-warning me-2"><i class="fas fa-edit"></i> Редактировать</a>
+                <a href="{% url 'appointment_delete' appointment.pk %}" class="btn btn-danger"><i class="fas fa-trash"></i> Удалить</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Пациент:</dt>
+                <dd class="col-sm-9"><a href="{{ appointment.patient.get_absolute_url }}">{{ appointment.patient.full_name }}</a></dd>
+
+                <dt class="col-sm-3">Врач:</dt>
+                <dd class="col-sm-9"><a href="{{ appointment.doctor.get_absolute_url }}">{{ appointment.doctor.full_name }}</a> ({{ appointment.doctor.specialization.name }})</dd>
+                
+                <dt class="col-sm-3">Дата и время:</dt>
+                <dd class="col-sm-9">{{ appointment.appointment_datetime|date:"l, d F Y, H:i" }}</dd>
+
+                <dt class="col-sm-3">Статус:</dt>
+                <dd class="col-sm-9">
+                    <span class="badge 
+                        {% if appointment.status == 'scheduled' %}bg-primary
+                        {% elif appointment.status == 'completed' %}bg-success
+                        {% elif appointment.status == 'cancelled_by_patient' or appointment.status == 'cancelled_by_clinic' %}bg-warning text-dark
+                        {% elif appointment.status == 'no_show' %}bg-danger
+                        {% else %}bg-secondary
+                        {% endif %}">
+                        {{ appointment.get_status_display }}
+                    </span>
+                </dd>
+
+                <dt class="col-sm-3">Причина визита (кратко):</dt>
+                <dd class="col-sm-9">{{ appointment.reason_for_visit|default:"Не указана" }}</dd>
+
+                {% if appointment.detailed_reason %}
+                <dt class="col-sm-3">Подробная причина/Жалобы:</dt>
+                <dd class="col-sm-9">{{ appointment.detailed_reason|linebreaksbr }}</dd>
+                {% endif %}
+
+                {% if appointment.doctor_notes %}
+                <dt class="col-sm-3">Заметки врача по приему:</dt>
+                <dd class="col-sm-9">{{ appointment.doctor_notes|linebreaksbr }}</dd>
+                {% endif %}
+                
+                <dt class="col-sm-3">Запись создана:</dt>
+                <dd class="col-sm-9"><small class="text-muted">{{ appointment.created_at|date:"d.m.Y H:i" }}</small></dd>
+
+                <dt class="col-sm-3">Последнее изменение:</dt>
+                <dd class="col-sm-9"><small class="text-muted">{{ appointment.updated_at|date:"d.m.Y H:i" }}</small></dd>
+            </dl>
+             {% if appointment.status == 'completed' and not appointment.medicalrecord %}
+                {# <a href="{% url 'medical_record_create_for_appointment' appointment.pk %}" class="btn btn-info"><i class="fas fa-file-medical"></i> Создать мед. запись для этого приема</a> #}
+                <p class="text-info"><small>Для этого завершенного приема еще не создана медицинская запись.</small></p>
+            {% elif appointment.medicalrecord %}
+                 <a href="#" class="btn btn-outline-info disabled"><i class="fas fa-file-medical-alt"></i> Просмотр мед. записи (в разработке)</a>
+            {% endif %}
+        </div>
+         <div class="card-footer bg-light">
+            <a href="{% url 'appointment_list_all' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> К списку записей</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

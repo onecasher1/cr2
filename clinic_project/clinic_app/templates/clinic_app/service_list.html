@@ -1,0 +1,53 @@
+{% extends "clinic_app/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-briefcase-medical text-info"></i> {{ page_title }}</h2>
+    <hr>
+
+    {% if services %}
+    <div class="accordion shadow-sm" id="servicesAccordion">
+        {% for service in services %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading{{ service.pk }}">
+                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ service.pk }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ service.pk }}">
+                    <strong>{{ service.name }}</strong> <span class="ms-auto me-3 text-muted">{{ service.price }} руб.</span>
+                </button>
+            </h2>
+            <div id="collapse{{ service.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ service.pk }}" data-bs-parent="#servicesAccordion">
+                <div class="accordion-body">
+                    <p>{{ service.description|default:"Описание отсутствует."|linebreaksbr }}</p>
+                    <ul class="list-unstyled">
+                        {% if service.code %}<li><strong>Код услуги:</strong> {{ service.code }}</li>{% endif %}
+                        {% if service.duration_minutes %}<li><strong>Примерная длительность:</strong> {{ service.duration_minutes }} минут</li>{% endif %}
+                        {% if service.specializations.all %}
+                        <li>
+                            <strong>Требуемые специализации врачей:</strong>
+                            <ul>
+                                {% for spec in service.specializations.all %}
+                                    <li><a href="{% url 'doctors_by_specialization' spec.id %}">{{ spec.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    <button class="btn btn-sm btn-outline-success disabled" title="Функционал в разработке"><i class="fas fa-calendar-plus"></i> Записаться на услугу</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+      Список услуг поликлиники пока пуст.
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'home_page' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> На главную</a>
+    </div>
+</div>
+{% endblock %}

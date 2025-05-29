@@ -1,0 +1,43 @@
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+main {
+    flex: 1;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.card-header h4, .card-header h3 {
+    margin-bottom: 0;
+}
+
+.btn-xs { /* Маленькие кнопки */
+    padding: .2rem .4rem;
+    font-size: .75rem;
+    line-height: 1.5;
+    border-radius: .2rem;
+}
+
+.table th, .table td {
+    vertical-align: middle;
+}
+
+/* Для выравнивания иконок в заголовках */
+.card-header i, h2 i, h3 i, h4 i, h5 i {
+    margin-right: 0.5rem;
+}
+
+/* Улучшение отображения invalid-feedback для форм */
+.invalid-feedback.d-block {
+    display: block !important; /* Убедимся, что сообщение об ошибке видно */
+    width: 100%;
+    margin-top: .25rem;
+    font-size: .875em;
+    color: #dc3545;
+}

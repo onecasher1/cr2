@@ -1,0 +1,92 @@
+{% extends "clinic_app/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h3><i class="fas fa-user-injured text-info"></i> {{ page_title }}</h3>
+            <div>
+                <a href="{% url 'patient_update' patient.pk %}" class="btn btn-warning me-2"><i class="fas fa-edit"></i> Редактировать</a>
+                <a href="{% url 'patient_delete' patient.pk %}" class="btn btn-danger"><i class="fas fa-trash"></i> Удалить</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4><i class="fas fa-id-card"></i> Основная информация:</h4>
+                    <ul class="list-unstyled">
+                        <li><strong>ФИО:</strong> {{ patient.full_name }}</li>
+                        <li><strong>Дата рождения:</strong> {{ patient.date_of_birth|date:"d.m.Y" }} {% if patient.get_age %}(Возраст: {{ patient.get_age }} лет){% endif %}</li>
+                        <li><strong>Телефон:</strong> {{ patient.contact_phone }}</li>
+                        <li><strong>Email:</strong> {{ patient.email|default:"Не указан" }}</li>
+                        <li><strong>Адрес:</strong> {{ patient.address|default:"Не указан"|linebreaksbr }}</li>
+                        <li><strong>Страховой полис:</strong> {{ patient.insurance_policy_number|default:"Не указан" }}</li>
+                        <li><strong>Дата регистрации:</strong> {{ patient.registration_date|date:"d.m.Y H:i" }}</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4><i class="fas fa-notes-medical"></i> Заметки о пациенте:</h4>
+                    <p class="text-muted">{{ patient.notes|default:"Нет заметок."|linebreaksbr }}</p>
+                     <a href="{% url 'appointment_create' %}?patient_id={{ patient.pk }}" class="btn btn-success mt-3"><i class="fas fa-calendar-plus"></i> Записать пациента на прием</a>
+                </div>
+            </div>
+
+            <hr>
+            <h4><i class="fas fa-calendar-check"></i> Последние записи на прием (до 10):</h4>
+            {% if appointments %}
+                <div class="list-group mb-3">
+                    {% for app in appointments %}
+                    <a href="{% url 'appointment_detail_view' app.pk %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">К <span class="text-primary">{{ app.doctor.full_name }}</span> ({{ app.doctor.specialization.name }})</h6>
+                            <small>{{ app.appointment_datetime|date:"d.m.Y H:i" }}</small>
+                        </div>
+                        <p class="mb-1"><small>Причина: {{ app.reason_for_visit|default:"Не указана"|truncatewords:15 }}</small></p>
+                        <span class="badge 
+                            {% if app.status == 'scheduled' %}bg-primary
+                            {% elif app.status == 'completed' %}bg-success
+                            {% elif app.status == 'cancelled_by_patient' or app.status == 'cancelled_by_clinic' %}bg-warning text-dark
+                            {% elif app.status == 'no_show' %}bg-danger
+                            {% else %}bg-secondary
+                            {% endif %}">
+                            {{ app.get_status_display }}
+                        </span>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">Нет записей на прием.</p>
+            {% endif %}
+            <a href="{% url 'appointment_list_all' %}?patient_id={{ patient.id }}" class="btn btn-sm btn-outline-info mb-3"><i class="fas fa-list-ul"></i> Все записи пациента</a>
+
+            <hr>
+            <h4><i class="fas fa-file-medical-alt"></i> Последние медицинские записи (до 10):</h4>
+            {% if medical_records %}
+                <ul class="list-group">
+                    {% for record in medical_records %}
+                    <li class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Запись от {{ record.record_date|date:"d.m.Y" }}</h6>
+                            <small class="text-muted">Врач: {% if record.doctor %}<a href="{{ record.doctor.get_absolute_url }}">{{ record.doctor.full_name }}</a>{% else %}Не указан{% endif %}</small>
+                        </div>
+                        <p class="mb-1"><small>Диагноз: {{ record.diagnosis|truncatewords:20|default:"Не указан" }}</small></p>
+                        {% if record.appointment %}
+                            <small class="text-muted">Связано с приемом от: {{ record.appointment.appointment_datetime|date:"d.m.Y H:i" }}</small>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">Нет медицинских записей.</p>
+            {% endif %}
+            {# <a href="#" class="btn btn-sm btn-outline-info mt-2" title="Функционал в разработке">Все медицинские записи пациента</a> #}
+        </div>
+        <div class="card-footer bg-light">
+            <a href="{% url 'patient_list' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> К списку пациентов</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

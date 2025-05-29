@@ -1,0 +1,145 @@
+{% extends "clinic_app/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Поликлиника "Здоровье"{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Виджет: Поиск -->
+        <div class="col-md-12 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h4><i class="fas fa-search text-primary"></i> Поиск врача или услуги</h4>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{% url 'search_results' %}">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control form-control-lg" placeholder="ФИО врача, специализация, название услуги..." value="{{ request.GET.q }}">
+                            <button class="btn btn-primary btn-lg" type="submit"><i class="fas fa-search"></i> Найти</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Виджет: Ближайшие записи -->
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <h4><i class="fas fa-calendar-alt"></i> Ближайшие записи на прием (топ-5)</h4>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_appointments %}
+                        <ul class="list-group list-group-flush">
+                            {% for app in upcoming_appointments %}
+                            <li class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">
+                                        <a href="{{ app.patient.get_absolute_url }}">{{ app.patient.full_name }}</a> к
+                                        <a href="{{ app.doctor.get_absolute_url }}">{{ app.doctor.full_name }}</a>
+                                    </h6>
+                                    <small class="text-muted">{{ app.appointment_datetime|date:"d.m.Y H:i" }}</small>
+                                </div>
+                                <p class="mb-1">
+                                    <small>Специализация: {{ app.doctor.specialization.name }} <br>
+                                    Причина: {{ app.reason_for_visit|truncatewords:10|default:"Не указана" }}</small>
+                                </p>
+                                <span class="badge
+                                    {% if app.status == 'scheduled' %}bg-primary
+                                    {% elif app.status == 'completed' %}bg-success
+                                    {% elif app.status == 'cancelled_by_patient' or app.status == 'cancelled_by_clinic' %}bg-warning text-dark
+                                    {% elif app.status == 'no_show' %}bg-danger
+                                    {% else %}bg-secondary
+                                    {% endif %}">
+                                    {{ app.get_status_display }}
+                                </span>
+                                <button class="btn btn-sm btn-outline-secondary float-end disabled" title="Функционал 'В избранное' в разработке">
+                                    <i class="far fa-bookmark"></i>
+                                </button>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">Нет запланированных приемов на ближайшее время.</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-light">
+                    <a href="{% url 'appointment_list_all' %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-calendar-check"></i> Все записи</a>
+                    <a href="{% url 'appointment_create' %}" class="btn btn-sm btn-success float-end"><i class="fas fa-plus-circle"></i> Новая запись</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Виджет: Наши специалисты -->
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fas fa-user-md"></i> Наши специалисты (случайные 5)</h4>
+                </div>
+                <div class="card-body">
+                    {% if doctors %}
+                        <ul class="list-group list-group-flush">
+                            {% for doctor in doctors %}
+                            <li class="list-group-item">
+                                <div class="row align-items-center">
+                                    <div class="col-3 text-center">
+                                        {% if doctor.photo %}
+                                            <img src="{{ doctor.photo.url }}" alt="{{ doctor.full_name }}" class="img-fluid rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                                        {% else %}
+                                            <img src="{% static 'clinic_app/images/default_doctor.png' %}" alt="Фото отсутствует" class="img-fluid rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-9">
+                                        <h6 class="mb-0"><a href="{{ doctor.get_absolute_url }}">{{ doctor.full_name }}</a></h6>
+                                        <small class="text-muted">{{ doctor.specialization.name }} (Стаж: {{ doctor.experience_years }} г.)</small>
+                                        <button class="btn btn-xs btn-outline-primary mt-1 disabled" style="font-size: 0.75rem;" title="Функционал 'Записаться' в разработке">
+                                            <i class="fas fa-calendar-plus"></i> Записаться
+                                        </button>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">Информация о врачах отсутствует.</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-light">
+                    <a href="{% url 'doctor_list_all' %}" class="btn btn-sm btn-outline-success"><i class="fas fa-users"></i> Все врачи</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+         <!-- Виджет: Наши специализации -->
+        <div class="col-md-12 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h4><i class="fas fa-stethoscope"></i> Популярные специализации (топ-5 по кол-ву врачей)</h4>
+                </div>
+                <div class="card-body">
+                    {% if specializations_with_doctors_count %}
+                        <div class="list-group">
+                            {% for spec_data in specializations_with_doctors_count %}
+                                <a href="{% url 'doctors_by_specialization' spec_data.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    {{ spec_data.name }}
+                                    <span class="badge bg-primary rounded-pill">{{ spec_data.num_doctors }} врач(ей)</span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Нет доступных специализаций.</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-light">
+                    <a href="{% url 'specialization_list_all' %}" class="btn btn-sm btn-outline-warning text-dark"><i class="fas fa-th-list"></i> Все специализации</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

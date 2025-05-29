@@ -1,0 +1,65 @@
+{% extends "clinic_app/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ page_title }}</h2>
+
+    {% if not query %}
+        <p class="alert alert-info">Пожалуйста, введите поисковый запрос.</p>
+    {% endif %}
+
+    {% if query %}
+        {% if doctors_results %}
+        <div class="mt-4">
+            <h3><i class="fas fa-user-md text-primary"></i> Найденные врачи:</h3>
+            <div class="list-group shadow-sm">
+                {% for doctor in doctors_results %}
+                <a href="{{ doctor.get_absolute_url }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ doctor.full_name }}</h5>
+                        <small class="text-muted">{{ doctor.specialization.name }}</small>
+                    </div>
+                    <p class="mb-1"><small>Стаж: {{ doctor.experience_years }} лет. Кабинет: {{ doctor.room_number|default:"не указан" }}</small></p>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if services_results %}
+        <div class="mt-4">
+            <h3><i class="fas fa-briefcase-medical text-success"></i> Найденные услуги:</h3>
+            <div class="list-group shadow-sm">
+                {% for service in services_results %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ service.name }}</h5>
+                        <small class="text-muted">Цена: {{ service.price }} руб.</small>
+                    </div>
+                    <p class="mb-1"><small>{{ service.description|truncatewords:30 }}</small></p>
+                    {% if service.specializations.all %}
+                    <small class="text-muted">Требуемые специализации: 
+                        {% for spec in service.specializations.all %}
+                            {{ spec.name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not doctors_results and not services_results %}
+        <p class="alert alert-warning mt-3">По вашему запросу "<strong>{{ query }}</strong>" ничего не найдено.</p>
+        {% endif %}
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'home_page' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Вернуться на главную</a>
+    </div>
+</div>
+{% endblock %}

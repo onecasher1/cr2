@@ -1,0 +1,35 @@
+{% extends "clinic_app/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-stethoscope text-warning"></i> {{ page_title }}</h2>
+    <hr>
+
+    {% if specializations %}
+        <div class="list-group shadow-sm">
+            {% for spec in specializations %}
+                <a href="{% url 'doctors_by_specialization' spec.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">{{ spec.name }}</h5>
+                        {% if spec.description %}
+                        <small class="text-muted">{{ spec.description|truncatewords:20 }}</small>
+                        {% endif %}
+                    </div>
+                    <span class="badge bg-primary rounded-pill">{{ spec.num_doctors }} врач(ей)</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+          В поликлинике пока нет зарегистрированных специализаций с активными врачами.
+        </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'home_page' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> На главную</a>
+    </div>
+</div>
+{% endblock %}

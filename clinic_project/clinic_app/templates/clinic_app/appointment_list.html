@@ -1,0 +1,76 @@
+{% extends "clinic_app/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-calendar-alt text-primary"></i> {{ page_title }}</h2>
+        <a href="{% url 'appointment_create' %}" class="btn btn-success"><i class="fas fa-plus-circle"></i> Новая запись на прием</a>
+    </div>
+
+    {% comment %}
+    Удаляем этот блок или заменяем на проверку переменной из контекста:
+    {% if request.GET.patient_id %}
+        {% with patient_id=request.GET.patient_id %}
+            {% if patient_id %}
+                {% get_patient patient_id as current_patient %} {# НЕСУЩЕСТВУЮЩИЙ ТЕГ #}
+                {% if current_patient %}
+                    <div class="alert alert-info">Показаны записи для пациента: <strong>{{ current_patient.full_name }}</strong>. <a href="{% url 'appointment_list_all' %}">Показать все записи</a></div>
+                {% endif %}
+            {% endif %}
+        {% endwith %}
+    {% endif %}
+    {% endcomment %}
+
+    {% if filtered_patient %} {# Новый блок для отображения информации о фильтре #}
+        <div class="alert alert-info">
+            Показаны записи для пациента: <strong><a href="{{ filtered_patient.get_absolute_url }}">{{ filtered_patient.full_name }}</a></strong>.
+            <a href="{% url 'appointment_list_all' %}" class="alert-link ms-2">Показать все записи</a>
+        </div>
+    {% endif %}
+
+
+    {% if appointments %}
+    <div class="list-group shadow-sm">
+        {% for app in appointments %}
+        <a href="{% url 'appointment_detail_view' app.pk %}" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">
+                    <span class="text-info">{{ app.patient.full_name }}</span> к
+                    <span class="text-success">{{ app.doctor.full_name }}</span> ({{ app.doctor.specialization.name }})
+                </h5>
+                <small class="text-muted">{{ app.appointment_datetime|date:"d.m.Y H:i" }}</small>
+            </div>
+            <p class="mb-1"><small>Причина: {{ app.reason_for_visit|default:"Не указана"|truncatewords:20 }}</small></p>
+            <span class="badge
+                {% if app.status == 'scheduled' %}bg-primary
+                {% elif app.status == 'completed' %}bg-success
+                {% elif app.status == 'cancelled_by_patient' or app.status == 'cancelled_by_clinic' %}bg-warning text-dark
+                {% elif app.status == 'no_show' %}bg-danger
+                {% else %}bg-secondary
+                {% endif %}">
+                {{ app.get_status_display }}
+            </span>
+            <div class="float-end">
+                <a href="{% url 'appointment_update' app.pk %}" class="btn btn-sm btn-outline-warning me-1" title="Редактировать запись"><i class="fas fa-edit"></i></a>
+                <a href="{% url 'appointment_delete' app.pk %}" class="btn btn-sm btn-outline-danger" title="Удалить запись"><i class="fas fa-trash"></i></a>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-secondary" role="alert">
+      Записей на прием не найдено.
+      {% if filtered_patient %}
+        Для пациента <strong>{{ filtered_patient.full_name }}</strong> нет записей. <a href="{% url 'appointment_create' %}?patient_id={{filtered_patient.pk}}" class="alert-link">Создайте новую запись.</a>
+      {% elif request.GET.patient_id %}
+        Пациент с ID {{ request.GET.patient_id }} не найден или для него нет записей.
+      {% else %}
+        <a href="{% url 'appointment_create' %}" class="alert-link">Создайте новую запись.</a>
+      {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

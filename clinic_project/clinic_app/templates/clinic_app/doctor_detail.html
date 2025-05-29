@@ -1,0 +1,67 @@
+{% extends "clinic_app/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="row g-0">
+            <div class="col-md-4 text-center p-3">
+                {% if doctor.photo %}
+                    <img src="{{ doctor.photo.url }}" class="img-fluid rounded" alt="{{ doctor.full_name }}" style="max-height: 300px; object-fit: cover;">
+                {% else %}
+                    <img src="{% static 'clinic_app/images/default_doctor.png' %}" class="img-fluid rounded" alt="Фото отсутствует" style="max-height: 300px; object-fit: cover; opacity: 0.7;">
+                {% endif %}
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h2 class="card-title">{{ doctor.full_name }}</h2>
+                    <h4 class="card-subtitle mb-2 text-muted">{{ doctor.specialization.name }}</h4>
+                    <hr>
+                    <p><strong>Стаж работы:</strong> {{ doctor.experience_years }} лет</p>
+                    <p><strong>Кабинет:</strong> {{ doctor.room_number|default:"Не указан" }}</p>
+                    <p><strong>Контактный телефон:</strong> {{ doctor.contact_phone|default:"Не указан" }}</p>
+                    <p><strong>Email:</strong> {{ doctor.email|default:"Не указан" }}</p>
+                    
+                    {% if doctor.bio %}
+                        <h5><i class="fas fa-info-circle"></i> О враче:</h5>
+                        <p class="text-muted">{{ doctor.bio|linebreaksbr }}</p>
+                    {% endif %}
+                    
+                    <button class="btn btn-lg btn-success mt-3 disabled" title="Функционал в разработке"><i class="fas fa-calendar-plus"></i> Записаться на прием</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <h4><i class="fas fa-calendar-check text-primary"></i> Ближайшие доступные записи (до 5):</h4>
+        {% if upcoming_appointments %}
+            <ul class="list-group">
+            {% for app in upcoming_appointments %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                        <strong>{{ app.appointment_datetime|date:"d.m.Y H:i" }}</strong> - Пациент: <a href="{{ app.patient.get_absolute_url }}">{{ app.patient.full_name|truncatechars:30 }}</a>
+                        <br><small>Причина: {{ app.reason_for_visit|default:"не указана"|truncatechars:50 }}</small>
+                    </span>
+                    <span class="badge bg-primary rounded-pill">{{ app.get_status_display }}</span>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">Нет ближайших запланированных записей к этому врачу.</p>
+        {% endif %}
+        <p class="mt-2"><small>Всего завершенных приемов у этого врача: {{ past_appointments_count }}</small></p>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'doctor_list_all' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> К списку врачей</a>
+         {% if doctor.specialization %}
+        <a href="{% url 'doctors_by_specialization' doctor.specialization.id %}" class="btn btn-outline-info ms-2">
+            Все врачи специализации "{{ doctor.specialization.name }}"
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
